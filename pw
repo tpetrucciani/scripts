@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+
+cd ~/.password-store
+
+help_message=$(cat << END
+↩ : copy · ^S: show · ^T: autotype · ^Y: autotype user/pass · ^U: show tail
+END
+)
+
+output=$(
+  find . -name '*.gpg' |
+  sed 's/^\.\///; s/\.gpg$//; s/\// ► /g' |
+  fzf \
+    --query="$*" \
+    --header="$help_message" \
+    --reverse \
+    --expect=ctrl-t,ctrl-y,ctrl-u,ctrl-s
+) || exit 0
+
+mode=$(head -1 <<< "$output")
+password_filename=$(tail -1 <<< "$output" | sed 's/ ► /\//g')
+
+case $mode in
+  ctrl-t)
+    password_text=$(pass show "$password_filename") &&
+    password=$(head -1 <<< "$password_text") &&
+    autotype "$password"
+    ;;
+  ctrl-y)
+    password_text=$(pass show "$password_filename") &&
+    password=$(head -1 <<< "$password_text") &&
+    username=$(
+      tail -n +2 <<< "$password_text" |
+      grep UserName |
+      sed 's/UserName: //'
+    ) &&
+    autotype "$username" "$password"
+    ;;
+  ctrl-u)
+    pass tail "$password_filename"
+    ;;
+  ctrl-s)
+    pass show "$password_filename"
+    ;;
+  *)
+    pass show -c "$password_filename"
+    ;;
+esac
