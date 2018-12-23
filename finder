@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+
+realpath=grealpath
+
+read -r -d '' JXA_SCRIPT << EOF
+const finder = Application("Finder");
+const sysEvents = Application("System Events");
+const iTerm = Application("iTerm2");
+
+function pathToFinderReference(path) {
+  let components = path.split("/").filter(x => x.length > 0);
+  let reference = components.reduce(
+    ((path, c) => path.items.byName(c)),
+    finder.startupDisk
+  );
+  return reference.exists() ? reference : null;
+}
+
+function newFinderTab() {
+  iTerm.currentWindow.hideHotkeyWindow();
+  finder.activate();
+  delay(0.5);
+  sysEvents.keystroke("t", {using: ["command down"]});
+}
+
+function run(args) {
+  if (args.length >= 1) {
+    let path = args[0];
+    let finderReference = pathToFinderReference(path);
+    if (finderReference) {
+      newFinderTab();
+      finder.windows.at(0).target = finderReference;
+    } else {
+      console.log("Wrong path or other error.");
+    }
+  }
+}
+EOF
+
+if [ $# -eq 0 ]; then
+  path=$(
+    fd -t d . $HOME | fzf --height=10
+  ) || return
+else
+  path="$($realpath "$1")"
+fi
+
+osascript -l JavaScript - "$path" <<< "$JXA_SCRIPT"
