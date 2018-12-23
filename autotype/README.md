@@ -9,7 +9,7 @@ Use as follows:
 - open the hotkey window and run `autotype <text>`;
 - the hotkey window should close and the text should be typed out.
 
-If more than one argument is given, they are typed separated by tabs.
+If more than one argument is given, all are typed in order separated by tabs.
 If `--enter` is given as first argument, Enter is pressed at the end.
 (A short delay is inserted around tabs and before Enter.)
 

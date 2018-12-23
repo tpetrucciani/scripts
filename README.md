@@ -9,10 +9,11 @@ The following are short descriptions: see each folder for more details.
   Meant to be used especially from other scripts
   running from the hotkey window of iTerm.
 
-- **finder-open-tab** opens a new Finder tab at a given path.
+- **finder** opens a new Finder tab at a given path.
+  (Requires [FZF](https://github.com/junegunn/fzf).)
 
-- **notes** helps manage a collection of plain-text notes, including creating,
-  accessing, and archiving notes.
+- **notes** helps in managing a collection of plain-text notes,
+  including creating, accessing, and archiving notes.
   (Requires [FZF](https://github.com/junegunn/fzf).)
 
 - **pw** can be used together with [pass](https://www.passwordstore.org)
