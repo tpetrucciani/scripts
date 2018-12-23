@@ -22,5 +22,3 @@ The following are short descriptions: see each folder for more details.
   and [FZF](https://github.com/junegunn/fzf).)
 
 - **remind** sets reminders on Apple's Reminders.app.
-
-(Not all of them are there yet.)
