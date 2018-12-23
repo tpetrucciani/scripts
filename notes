@@ -1,0 +1,164 @@
+#! /usr/bin/env bash
+
+# TODO `tips` could become a subcommand here
+# TODO add `conflicts` command to check for conflicted copies
+# TODO maybe the check for conflicted copies could be performed before each
+# operation like search, transcribe, etc. to print a warning in case
+# TODO it could be nice to hide extensions like .txt or .md
+
+#
+# Configuration
+#
+
+NOTES_AND_TASKS_DIR=/Users/tom/Dropbox/Notes
+NOTES_DIR=/Users/tom/Dropbox/Notes/Notes
+INBOX_FILE="$NOTES_DIR"/@@Inbox.txt
+DEFAULT_EXT=md
+REMINDERS_INBOX_NAME=Inbox
+
+#
+# Variables
+#
+
+PROGRAM="${0##*/}"
+
+read -r -d '' USAGE_MSG <<- EOF
+Usage:
+  $PROGRAM [search] [QUERY]
+    Launches search in note titles using FZF
+  $PROGRAM jot [TEXT]
+    Adds line of text from arguments or from input to the end of the Inbox
+  $PROGRAM new [TITLE]
+    Creates new note with title from arguments or input
+  $PROGRAM archived [QUERY]
+    Searches in archived notes
+  $PROGRAM backup
+    Commmits all changes and pushes them
+  $PROGRAM transcribe
+    NOT IMPLEMENTED YET
+  $PROGRAM help
+    Shows this help message
+EOF
+
+read -r -d '' JXA_SCRIPT << EOF
+  let reminders = Application("Reminders");
+  let inbox = reminders.lists.byName("$REMINDERS_INBOX_NAME");
+  let items = inbox.reminders.whose({completed: false})();
+  let extractBody = r =>
+    (r.body() == null) ? "" : [" [", r.body(), "]"].join("");
+  let text = items.map(
+    r => ["- ", r.name(), extractBody(r)].join("")).join("\n");
+  if (text != "") {
+    items.forEach(r => r.completed = true);
+    "\n" + text;
+  }
+EOF
+
+#
+# Subcommand functions
+#
+
+cmd_search() {
+  local selected notepath
+  cd "$NOTES_DIR" &&
+  selected=$(
+    find . -mindepth 1 -path './_Archive' -prune -o \( ! -iname '.*' \) -print |
+    sed 's/^\.\///; s/\// ► /g' |
+    fzf -1 --query="$*"
+  ) || exit 0
+  notepath=$(echo $selected | sed 's/ ► /\//g')
+  ${EDITOR:-vi} -- "$notepath"
+}
+
+cmd_new() {
+  local notetitle
+  if [[ $# -eq 0 ]]; then
+    read -e -p "Title: " notetitle
+  else
+    notetitle="$*"
+  fi
+  notepath="$NOTES_DIR"/"$notetitle".$DEFAULT_EXT
+  if [[ -f "$notepath" ]]; then
+    echo "Already existing: $notepath"
+  else
+    cd "$NOTES_DIR" &&
+    ${EDITOR:-vi} "$notepath"
+  fi
+}
+
+cmd_jot() {
+  local text
+  if [[ $# -eq 0 ]]; then
+    read -e text
+  else
+    text="$*"
+  fi
+  [[ ! -z "$text" ]] || exit 0
+  if [[ -f "$INBOX_FILE" ]]; then
+    printf '\n- %s\n' "$text" >> "$INBOX_FILE"
+  else
+    echo "Inbox file $INBOX_FILE not found."
+  fi
+}
+
+cmd_backup() {
+  git -C "$NOTES_AND_TASKS_DIR" add . &&
+  git -C "$NOTES_AND_TASKS_DIR" commit -m 'Automatic commit.' ;
+  git -C "$NOTES_AND_TASKS_DIR" push origin;
+  git -C "$NOTES_AND_TASKS_DIR" push gitlab
+}
+
+cmd_transcribe() {
+  if [[ -f "$INBOX_FILE" ]]; then
+    osascript -l JavaScript <<< "$JXA_SCRIPT" >> "$INBOX_FILE"
+  else
+    echo "Inbox file $INBOX_FILE not found."
+  fi
+}
+
+cmd_archived() {
+  local selected notepath
+  cd "$NOTES_DIR"/_Archive &&
+  selected=$(
+    find . -mindepth 1 \( ! -iname '.*' \) -print |
+    sed 's/^\.\///; s/\// ► /g' |
+    fzf -1 --query="$*"
+  ) || exit 0
+  notepath=$(echo $selected | sed 's/ ► /\//g')
+  ${EDITOR:-vi} -- "$notepath"
+}
+
+show_usage_msg() {
+  cat <<< "$USAGE_MSG"
+}
+
+#
+# End subcommand functions
+#
+
+if [[ $# -eq 0 ]]; then
+  shift
+  cmd_search "$@"
+  exit 0
+fi
+
+case "$1" in
+  search)
+    shift; cmd_search "$@" ;;
+  new)
+    shift; cmd_new "$@" ;;
+  jot)
+    shift; cmd_jot "$@" ;;
+  backup)
+    shift; cmd_backup "$@" ;;
+  transcribe)
+    shift; cmd_transcribe "$@" ;;
+  archived)
+    shift; cmd_archived "$@" ;;
+  help)
+    show_usage_msg ;;
+  *)
+   cmd_search "$@" ;;
+esac
+
+exit 0
