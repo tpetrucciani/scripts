@@ -2,7 +2,7 @@
 
 These are some scripts I use:
 
-- [`autotype.js`](#autotype.js) allows to type text programmatically in macOS;
+- [`autotype.js`](#autotypejs) allows to type text programmatically in macOS;
 
 - [`finder`](#finder) opens a new macOS Finder tab at a given path;
 
@@ -11,7 +11,7 @@ These are some scripts I use:
 - [`pw`](#pw) can be used together with [pass](https://www.passwordstore.org)
   to select passwords quickly.
 
-- [`remind.rb`](#remind.rb) sets reminders on Apple's Reminders.app.
+- [`remind.rb`](#remindrb) sets reminders on Apple's Reminders.app.
 
 ## autotype.js
 
