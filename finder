@@ -2,6 +2,13 @@
 
 realpath=grealpath
 
+# The following JavaScript for Automation opens a new Finder tab
+# and focuses the absolute path given as argument to `osascript`.
+
+# Setting the path of a Finder tab requires converting the path
+# to a "Finder reference": I couldn't find a more direct way to do so
+# than traversing the path as `pathToFinderReference` does.
+
 read -r -d '' JXA_SCRIPT << EOF
 const finder = Application("Finder");
 const sysEvents = Application("System Events");
@@ -40,7 +47,7 @@ EOF
 if [ $# -eq 0 ]; then
   path=$(
     fd -t d . $HOME | fzf --height=10
-  ) || return
+  ) || exit
 else
   path="$($realpath "$1")"
 fi
