@@ -7,11 +7,19 @@
 # TODO it could be nice to hide extensions like .txt or .md
 
 #
+# Initialize path of the notes folder
+#
+
+if [ ! -d "$NOTES_PATH" ]; then
+  printf "Path '%s' not found\n" "$NOTES_PATH"
+  exit 1
+fi
+
+#
 # Configuration
 #
 
-NOTES_AND_TASKS_DIR=/Users/tom/Dropbox/Notes
-NOTES_DIR=/Users/tom/Dropbox/Notes/Notes
+NOTES_DIR="$NOTES_PATH"
 INBOX_FILE="$NOTES_DIR"/@@Inbox.txt
 DEFAULT_EXT=md
 REMINDERS_INBOX_NAME=Inbox
@@ -102,10 +110,10 @@ cmd_jot() {
 }
 
 cmd_backup() {
-  git -C "$NOTES_AND_TASKS_DIR" add . &&
-  git -C "$NOTES_AND_TASKS_DIR" commit -m 'Automatic commit.' ;
-  git -C "$NOTES_AND_TASKS_DIR" push origin;
-  git -C "$NOTES_AND_TASKS_DIR" push gitlab
+  git -C "$NOTES_DIR" add . &&
+  git -C "$NOTES_DIR" commit -m 'Automatic commit.' ;
+  git -C "$NOTES_DIR" push origin;
+  git -C "$NOTES_DIR" push gitlab
 }
 
 cmd_transcribe() {
@@ -138,7 +146,7 @@ show_usage_msg() {
 
 if [[ $# -eq 0 ]]; then
   shift
-  cmd_search "$@"
+  cmd_search
   exit 0
 fi
 
