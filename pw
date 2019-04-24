@@ -3,7 +3,7 @@
 cd ~/.password-store
 
 help_message=$(cat << END
-↩ : copy · ^S: show · ^T: autotype · ^Y: autotype user/pass · ^U: show tail
+↩  copy · ^S show · ^T type · ^Y type user/pass · ^U show tail · ^I edit tail
 END
 )
 
@@ -14,7 +14,7 @@ output=$(
     --query="$*" \
     --header="$help_message" \
     --reverse \
-    --expect=ctrl-t,ctrl-y,ctrl-u,ctrl-s
+    --expect=ctrl-t,ctrl-y,ctrl-u,ctrl-s,ctrl-i
 ) || exit 0
 
 mode=$(head -1 <<< "$output")
@@ -41,6 +41,9 @@ case $mode in
     ;;
   ctrl-s)
     pass show "$password_filename"
+    ;;
+  ctrl-i)
+    pass tailedit "$password_filename"
     ;;
   *)
     pass show -c "$password_filename"
