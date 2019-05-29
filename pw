@@ -7,8 +7,15 @@ help_message=$(cat << END
 END
 )
 
+case "$1" in
+  -a)
+    shift ;;
+  *)
+    pw_should_prune_archived=1 ;;
+esac
+
 output=$(
-  find . -name '*.gpg' |
+  find . ${pw_should_prune_archived+-path './Archived' -prune -o} -name '*.gpg' -print |
   sed 's/^\.\///; s/\.gpg$//; s/\// ► /g' |
   fzf \
     --query="$*" \
