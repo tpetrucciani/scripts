@@ -15,7 +15,10 @@ case "$1" in
 esac
 
 output=$(
-  find . ${pw_should_prune_archived+-path './Archived' -prune -o} -name '*.gpg' -print |
+  find . \
+    ${pw_should_prune_archived+-path './Archived' -prune -o} \
+    ${pw_should_prune_archived+-path './Simo' -prune -o} \
+    -name '*.gpg' -print |
   sed 's/^\.\///; s/\.gpg$//; s/\// ► /g' |
   fzf \
     --query="$*" \
